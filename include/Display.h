@@ -1,4 +1,4 @@
-#ifndef Dispaly
+#ifndef Display
 #endif
 
 #include <GyverOLED.h>
