@@ -26,8 +26,8 @@
 
 Кнопка+:
 
-- Arduino Nano GND -> Кнопка1 контакт 1
-- Arduino Nano D5  -> Кнопка1 контакт 2
+- Arduino Nano GND -> Кнопка2 контакт 1
+- Arduino Nano D5  -> Кнопка2 контакт 2
 
 Входы:
 
