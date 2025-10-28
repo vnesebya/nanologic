@@ -1,4 +1,4 @@
-#ifndef DispalyGraf
+#ifndef Dispaly
 #endif
 
 #include <GyverOLED.h>

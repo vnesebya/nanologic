@@ -10,7 +10,7 @@ void splashScreen(){
     oled.print("_NanoLOGic_");
     oled.setScale(1);
     oled.setCursorXY(64, 0);
-    oled.print("Ver: 0.1.0");
+    oled.print("Ver: 0.1.1");
     
     // Полоска загрузки
     oled.setCursorXY(0,8);

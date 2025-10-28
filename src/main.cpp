@@ -71,9 +71,10 @@ void loop() {
 
   // Частотомер
   if (millis() - last_time <= count_timer_ms) {
-    // Если таймер частомера не истек - по спадающем фронту на пине D2 запускается функция countPulse()
+    // Если таймер частомера не истек - по изменению фронта на пине D2 запускается функция countPulse()
   } else {
     // Если таймер истек - вычисляем частоту по накопленным импульсам в функции countPulse()
+    // Т.К мы дергаем функцию countPulse() по изменению фронта, то частота будет в 2 раза ниже чем pulse_count
     frequency_hz = (float)pulse_count * 1000.0 / count_timer_ms / 2;
 
     // Рисуем данные на дисплее
@@ -83,9 +84,9 @@ void loop() {
       is_dispalyed = true;
     }
 
-
     // Запускаем обрабочик кнопки повторного перезапуска
     static uint32_t tmr;
+    
     // Кнопка -
     static bool ppin4_state = false;
     bool pin4_state = !digitalRead(BUTTON_PIN_4);
