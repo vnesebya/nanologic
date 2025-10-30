@@ -1,9 +1,9 @@
 #ifndef DisplayValues
-#endif
+
 
 // Позиции печати на экрне для printValues
 const int vales_x_pos = 12;                         // Позиция X для значений частоты скважности и длительности
-const int units_x_pos = 50;                         // Позиция X для единиц измерения
+const int units_x_pos = 48;                         // Позиция X для единиц измерения
 const int freq_y_pos = 0;                           // Позиция Y для частоты
 const int duty_y_pos = 8;                           // Позиция Y для скважности
 const int len1_y_pos = 16;                          // Позиция Y для длительности лог 1
@@ -11,14 +11,13 @@ const int len0_y_pos = 24;                          // Позиция Y для �
 
 
 // Печать частоты ---------------------------------------------------------------------------------------------
-void printFreq(long frequency_hz, long count_low_states, long count_hi_states, int freq_y_pos ){
+void printFreq(long frequency_hz, int freq_y_pos ){
 
     // Калькулятор пересчета единиц частоты
     oled.setCursorXY(0, freq_y_pos);
     oled.print("F:");
-    oled.setCursorXY(vales_x_pos, freq_y_pos);
-    oled.print("        ");
-    oled.setCursorXY(vales_x_pos, freq_y_pos);
+    oled.print("      ");
+    oled.setCursorXY(14,freq_y_pos);
     if (frequency_hz < 1000.0f) {
       unsigned long hz10 = (unsigned long)round(frequency_hz * 10.00f /1);
       oled.print(hz10 / 10);
@@ -56,12 +55,12 @@ void printDuty (float hi_states_percent, float low_states_percent, int duty_y_po
     // Печатаем скважность
     oled.setCursorXY(0, duty_y_pos);
     oled.print("D:");
-    oled.setCursorXY(vales_x_pos, duty_y_pos);
-    oled.print("       ");
-    oled.setCursorXY(vales_x_pos, duty_y_pos);
+    oled.print("      ");
+    oled.setCursorXY(14,duty_y_pos);
     oled.print(hi_states_percent,0);
     oled.print("/");
     oled.print(low_states_percent,0);
+    oled.print(" ");
     oled.setCursorXY(units_x_pos, duty_y_pos);
     oled.print("%");
 }
@@ -86,9 +85,6 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
 
     // Иконнка Измерения длительности лог 1
     oled.setCursorXY(0, len_y_pos);
-    oled.print("        ");
-    oled.setCursorXY(0, len_y_pos);
-
     if (len_front){
     // Иконка 1
       oled.drawByte(0b10000000); oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.drawByte(0b00000010); 
@@ -98,17 +94,17 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
       oled.drawByte(0b00000010); oled.drawByte(0b11111110); oled.drawByte(0b10000000); oled.drawByte(0b10000000); 
       oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.drawByte(0b00000010); oled.print(":");
     }
-
+    
+    oled.print("      ");
+    oled.setCursorXY(14, len_y_pos);
 
     // Значение длительности
     if (long_halfperiod < 1.0f) {
-      oled.setCursorXY(vales_x_pos, len_y_pos);
       oled.print("???");
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("S");
     } else if (long_halfperiod < 1000.0f) {
       // Пикосекунды
-      oled.setCursorXY(vales_x_pos, len_y_pos);
       unsigned long p10 = (unsigned long)round(long_halfperiod * 10.0f / 1.0f);
       oled.print(p10 / 10);
       oled.print('.');
@@ -118,7 +114,6 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
     } else if (long_halfperiod < 1000000.0f) {
       // Наносекунды
       unsigned long n10 = (unsigned long)round(long_halfperiod * 10.0f / 1000.0f);
-      oled.setCursorXY(vales_x_pos, len_y_pos);
       oled.print(n10 / 10);
       oled.print('.');
       oled.print(n10 % 10);
@@ -127,7 +122,6 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
     } else if (long_halfperiod < 1000000000.0f) {
       // Микросекунды
       unsigned long u10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000.0f);
-      oled.setCursorXY(vales_x_pos, len_y_pos);
       oled.print(u10 / 10);
       oled.print('.');
       oled.print(u10 % 10);
@@ -136,7 +130,6 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
     } else if (long_halfperiod < 1000000000000.0f) {
       // Милисекунды
       unsigned long m10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000000.0f);
-      oled.setCursorXY(vales_x_pos, len_y_pos);
       oled.print(m10 / 10);
       oled.print('.');
       oled.print(m10 % 10);
@@ -152,7 +145,6 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("S ");
     } else {
-      oled.setCursorXY(vales_x_pos, len_y_pos);
       oled.print ("0");
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("S ");
@@ -163,19 +155,30 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
 // Печать значений --------------------------------------------------------------------------------------------
 void printValues (long frequency_hz, long count_low_states, long count_hi_states){
 
-    printFreq(frequency_hz, count_low_states, count_hi_states, freq_y_pos);
+    printFreq(frequency_hz, freq_y_pos);
 
-    // Калькулятор пресчета процетов скажности
-    unsigned long total_states = count_low_states + count_hi_states;     // Сколько всего натикало клоков
-    float hi_states_percent = 0.0f;
-    float low_states_percent = 0.0f;
+    // Калькуляция процентов лог 1 и 0
+    long total_states = count_low_states + count_hi_states;     // Сколько всего натикало клоков
+    float hi_states_percent  = 0;
+    float low_states_percent = 0;
     if (total_states > 0) {
-        hi_states_percent =  (float)(count_hi_states)  / (float)(total_states) * 100;  // % 1
-        low_states_percent = (float)(count_low_states) / (float)(total_states) * 100;  // % 0
-    } 
+        hi_states_percent  = (float)count_hi_states  / (float)total_states * 100.0f; // % 1
+        low_states_percent = (float)count_low_states / (float)total_states * 100.0f; // % 0
+    }
+    if (0 < low_states_percent && low_states_percent < 1.0f){
+      low_states_percent = 1;
+      hi_states_percent = 100 - low_states_percent;
+    } else if (0.0f < hi_states_percent && hi_states_percent < 1.0f){
+      hi_states_percent = 1;
+      low_states_percent = 100 - hi_states_percent;
+    } else {
+      hi_states_percent  = round(hi_states_percent) ;
+      low_states_percent = round(low_states_percent);
+    }
 
     printDuty(hi_states_percent, low_states_percent, duty_y_pos);
     printLen(frequency_hz, hi_states_percent,  1, len1_y_pos);
     printLen(frequency_hz, low_states_percent, 0, len0_y_pos);
 
 }
+#endif

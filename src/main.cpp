@@ -9,7 +9,7 @@ const uint8_t BUTTON_PIN_5  = 5;            // Кнопка +
 const uint16_t BTN_DEB      = 50;           // Антидребезг кнопки (мс)
 
 // Таймер подсчёта
-const int count_timer_ms  = 100;            // Интервал накопления подсчёта (мс)
+const int count_timer_ms  = 300;            // Интервал накопления подсчёта (мс)
 
 // Переменные замеров частоты и счеттчиков состояний
 unsigned long pulse_count ;                 // Счётчик фронтов (инкрементируется в ISR)
@@ -21,8 +21,8 @@ unsigned long last_time;                    // Время последнего �
 // Переменная дисплея
 bool is_dispalyed = false;
 int min_periods_on_screen    = 1;           // Минимальное количество отображаемых периодов
-int periods_on_screen        = 3;           // Начально количество отображаемых периодов (по умолчанию)
-int max_periods_on_screen    = 7;           // Масимальное количесво отображаемых периодов
+int periods_on_screen        = 4;           // Начально количество отображаемых периодов (по умолчанию)
+int max_periods_on_screen    = 8;           // Масимальное количесво отображаемых периодов
 
 // Функция вызывается прерыванием вызванного изменением по  любому фронту на пине FREQ_PIN_2 
 // Минимальная логика, только счётчики
@@ -40,13 +40,18 @@ void countPulse() {
   }
 }
 
+void resetCounters(){
+    is_dispalyed = false;
+    pulse_count=0;
+    count_hi_states=0;
+    count_low_states=0;
+    last_time = millis();
+}
 
 void setup() {
 
     // Настройка пинов и прерывания
     pinMode(FREQ_PIN_2, INPUT);
-    attachInterrupt(digitalPinToInterrupt(FREQ_PIN_2), countPulse, CHANGE);
-
     pinMode(BUTTON_PIN_4, INPUT_PULLUP);
     pinMode(BUTTON_PIN_5, INPUT_PULLUP);
 
@@ -55,33 +60,38 @@ void setup() {
     oled.init();              // 3 ms
     oled.clear();             // 63 ms        
     
-    splashScreen();
+    // splashScreen();
     oled.clear();
 
     // Готовимся к началу счета 
     // сбрасываем счетчики перед началом
-    is_dispalyed = false;
-    pulse_count=0;
-    count_hi_states=0;
-    count_low_states=0;
-    last_time = millis();
+    noInterrupts();
+    resetCounters();
+    attachInterrupt(digitalPinToInterrupt(FREQ_PIN_2), countPulse, CHANGE);
+    interrupts();
 }
 
 void loop() {
+  float voltage = 0;
+  // int analogValue = analogRead(A0);
+  // voltage = analogValue * (5.0 / 1023.0);
+    debug0(0,voltage,periods_on_screen);
+
 
   // Частотомер
   if (millis() - last_time <= count_timer_ms) {
     // Если таймер частомера не истек - по изменению фронта на пине D2 запускается функция countPulse()
   } else {
+    detachInterrupt(digitalPinToInterrupt(FREQ_PIN_2));
     // Если таймер истек - вычисляем частоту по накопленным импульсам в функции countPulse()
     // Т.К мы дергаем функцию countPulse() по изменению фронта, то частота будет в 2 раза ниже чем pulse_count
     frequency_hz = (float)pulse_count * 1000.0 / count_timer_ms / 2;
 
     // Рисуем данные на дисплее
     if (!is_dispalyed){
-      printValues(frequency_hz, count_low_states, count_hi_states); // 95 ms
-      drawGarph(frequency_hz, count_low_states, count_hi_states, periods_on_screen );
       is_dispalyed = true;
+      printValues(frequency_hz, count_low_states, count_hi_states);
+      drawGraph(frequency_hz, count_low_states, count_hi_states, periods_on_screen );
     }
 
     // Запускаем обрабочик кнопки повторного перезапуска
@@ -93,7 +103,7 @@ void loop() {
     // Состояние кнопки изменилось и вышел таймер антидребезга
     if (ppin4_state != pin4_state && millis() - tmr >= BTN_DEB) {
       tmr = millis();        // сбросить таймер
-      // ppin4_state = pin4_state;   // запоминаем состояние кнопки
+      ppin4_state = pin4_state;   // запоминаем состояние кнопки
       if (pin4_state) {
         // Если кнопка нажата уменьшаем количество периодов на экране
         if ( min_periods_on_screen < periods_on_screen ) periods_on_screen = periods_on_screen - 1;
@@ -105,20 +115,16 @@ void loop() {
     // Состояние кнопки изменилось и вышел таймер антидребезга
     if (ppin5_state != pin5_state && millis() - tmr >= BTN_DEB) {
       tmr = millis();        // сбросить таймер
-      // ppin5_state = pin5_state;   // запоминаем состояние кнопки
+      ppin5_state = pin5_state;   // запоминаем состояние кнопки
       if (pin5_state) {
         // Если кнопка нажата увеличиваем количество периодов на экране
         if ( max_periods_on_screen > periods_on_screen ) periods_on_screen = periods_on_screen + 1;
       }
     }
-
-    is_dispalyed = false;
-    // сбрасываем счетчики
-    pulse_count=0;
-    count_hi_states=0;
-    count_low_states=0;
-    // зануляем таймер частотомера
-    last_time = millis();
+    noInterrupts();
+    resetCounters();
+    attachInterrupt(digitalPinToInterrupt(FREQ_PIN_2), countPulse, CHANGE);
+    interrupts();
   }
 }
 
