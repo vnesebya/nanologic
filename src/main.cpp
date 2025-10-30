@@ -3,26 +3,48 @@
 
 
 // Назначение пинов
-const uint8_t FREQ_PIN_2    = 2;            // Вход частотомера
-const uint8_t BUTTON_PIN_4  = 4;            // Кнопка -
-const uint8_t BUTTON_PIN_5  = 5;            // Кнопка +
-const uint16_t BTN_DEB      = 50;           // Антидребезг кнопки (мс)
+const uint8_t FREQ_PIN_2    = 2;   // Вход частотомера (прерывания по CHANGE)
+const uint8_t BUTTON_PIN_4  = 4;   // Кнопка "-" Уменьшает количетво периодов на осцилограмме
+const uint8_t BUTTON_PIN_5  = 5;   // Кнопка "+" Увеличивает количетво периодов на осцилограмме
+const uint8_t BUTTON_PIN_6  = 6;   // Кнопка "DisplayMode" Меняет режим отображения данных 
+const uint8_t BUTTON_PIN_7  = 7;   // Кнопка "Reset" Перезапуск счета и оттрисовки осцилограммы
+const uint8_t BUTTON_PIN_8  = 8;   // Кнопка Up   (зарезервирована для будущего использования)
+const uint8_t BUTTON_PIN_9  = 9;   // Кнопка Down (зарезервирована для будущего использования)
+const uint16_t BTN_DEB     = 25;   // Антидребезг кнопки (мс)
+
+const uint8_t BUTTON_PINS[] = {
+  BUTTON_PIN_4, BUTTON_PIN_5, BUTTON_PIN_6,
+  BUTTON_PIN_7 //, BUTTON_PIN_8, BUTTON_PIN_9
+};
+const uint8_t BUTTON_COUNT = sizeof(BUTTON_PINS) / sizeof(BUTTON_PINS[0]);
+
+volatile uint8_t *buttonPorts[BUTTON_COUNT]; // указатели на регистры портов
+uint8_t buttonMasks[BUTTON_COUNT];           // маски битов для каждого пина
+bool buttonPrevState[BUTTON_COUNT];          // предыдущее состояние (true = нажат)
+uint32_t buttonLastDebounce[BUTTON_COUNT];   // время последнего события для debounce
+
 
 // Таймер подсчёта
-const int count_timer_ms  = 300;            // Интервал накопления подсчёта (мс)
+const int count_timer_ms  = 300;             // Интервал накопления подсчёта (мс)
 
-// Переменные замеров частоты и счеттчиков состояний
-unsigned long pulse_count ;                 // Счётчик фронтов (инкрементируется в ISR)
-unsigned long count_hi_states ;             // Суммарное время/счёт высокого состояния (в "единицах" ISR)
-unsigned long count_low_states ;            // Суммарное время/счёт низкого состояния (в "единицах" ISR)
-unsigned long frequency_hz ;                // Частота
-unsigned long last_time;                    // Время последнего обновления (мс)
+// Переменные замеров частоты и счетчиков состояний
+unsigned long pulse_count       = 0;         // Счётчик фронтов (инкрементируется в ISR)
+unsigned long count_hi_states   = 0;         // Суммарное время/счёт высокого состояния (в "единицах" ISR)
+unsigned long count_low_states  = 0;         // Суммарное время/счёт низкого состояния (в "единицах" ISR)
+unsigned long frequency_hz      = 0;         // Частота
+unsigned long p_frequency_hz    = 0;         // Пердыдущий замер частоты
+unsigned long last_time         = 0;         // Время последнего обновления (мс)
+
+int analog_value_A0             = 0;         // Напряжение на A0 в попугаях Ардуины
+float voltage                = 0.0f;         // Пересчитанное напряжение на A0
 
 // Переменная дисплея
 bool is_dispalyed = false;
-int min_periods_on_screen    = 1;           // Минимальное количество отображаемых периодов
-int periods_on_screen        = 4;           // Начально количество отображаемых периодов (по умолчанию)
-int max_periods_on_screen    = 8;           // Масимальное количесво отображаемых периодов
+int min_periods_on_screen       = 1;         // Минимальное количество отображаемых периодов
+int periods_on_screen           = 3;         // Начально количество отображаемых периодов (по умолчанию)
+int max_periods_on_screen       = 8;         // Масимальное количесво отображаемых периодов
+int display_mode                = 0;         // Режим дисплея (TODO)
+
 
 // Функция вызывается прерыванием вызванного изменением по  любому фронту на пине FREQ_PIN_2 
 // Минимальная логика, только счётчики
@@ -50,11 +72,19 @@ void resetCounters(){
 
 void setup() {
 
-    // Настройка пинов и прерывания
-    pinMode(FREQ_PIN_2, INPUT);
-    pinMode(BUTTON_PIN_4, INPUT_PULLUP);
-    pinMode(BUTTON_PIN_5, INPUT_PULLUP);
+    // инициализация всех кнопок как INPUT_PULLUP
+    for (uint8_t i = 0; i < BUTTON_COUNT; ++i) {
+      pinMode(BUTTON_PINS[i], INPUT_PULLUP);
+    }
 
+    // Предвычисляем порты и маски, читаем начальные состояния
+    for (uint8_t i = 0; i < BUTTON_COUNT; ++i) {
+      buttonPorts[i] = portInputRegister(digitalPinToPort(BUTTON_PINS[i]));
+      buttonMasks[i] = digitalPinToBitMask(BUTTON_PINS[i]);
+      // INPUT_PULLUP: нажатие = 0 на линии -> инвертируем чтение для логичности (true = нажата)
+      buttonPrevState[i] = !((*buttonPorts[i]) & buttonMasks[i]);
+      buttonLastDebounce[i] = 0;
+    }
 
     // Инициализируем и очищаем экран
     oled.init();              // 3 ms
@@ -63,19 +93,15 @@ void setup() {
     // splashScreen();
     oled.clear();
 
-    // Готовимся к началу счета 
-    // сбрасываем счетчики перед началом
-    noInterrupts();
-    resetCounters();
     attachInterrupt(digitalPinToInterrupt(FREQ_PIN_2), countPulse, CHANGE);
     interrupts();
 }
 
 void loop() {
-  float voltage = 0;
-  // int analogValue = analogRead(A0);
+  uint32_t now = millis();
+  // analogValue = analogRead(A0);
   // voltage = analogValue * (5.0 / 1023.0);
-    debug0(0,voltage,periods_on_screen);
+  // debug0(voltage, display_mode,periods_on_screen);
 
 
   // Частотомер
@@ -88,43 +114,54 @@ void loop() {
     frequency_hz = (float)pulse_count * 1000.0 / count_timer_ms / 2;
 
     // Рисуем данные на дисплее
-    if (!is_dispalyed){
+    if (!is_dispalyed ){
+      p_frequency_hz = frequency_hz;
       is_dispalyed = true;
       printValues(frequency_hz, count_low_states, count_hi_states);
       drawGraph(frequency_hz, count_low_states, count_hi_states, periods_on_screen );
     }
-
-    // Запускаем обрабочик кнопки повторного перезапуска
-    static uint32_t tmr;
-    
-    // Кнопка -
-    static bool ppin4_state = false;
-    bool pin4_state = !digitalRead(BUTTON_PIN_4);
-    // Состояние кнопки изменилось и вышел таймер антидребезга
-    if (ppin4_state != pin4_state && millis() - tmr >= BTN_DEB) {
-      tmr = millis();        // сбросить таймер
-      ppin4_state = pin4_state;   // запоминаем состояние кнопки
-      if (pin4_state) {
-        // Если кнопка нажата уменьшаем количество периодов на экране
-        if ( min_periods_on_screen < periods_on_screen ) periods_on_screen = periods_on_screen - 1;
-      }
-    }
-    // Кнопка +
-    static bool ppin5_state = false;
-    bool pin5_state = !digitalRead(BUTTON_PIN_5);
-    // Состояние кнопки изменилось и вышел таймер антидребезга
-    if (ppin5_state != pin5_state && millis() - tmr >= BTN_DEB) {
-      tmr = millis();        // сбросить таймер
-      ppin5_state = pin5_state;   // запоминаем состояние кнопки
-      if (pin5_state) {
-        // Если кнопка нажата увеличиваем количество периодов на экране
-        if ( max_periods_on_screen > periods_on_screen ) periods_on_screen = periods_on_screen + 1;
-      }
-    }
-    noInterrupts();
-    resetCounters();
-    attachInterrupt(digitalPinToInterrupt(FREQ_PIN_2), countPulse, CHANGE);
-    interrupts();
   }
+
+
+    // ------------------- Оптимизированное чтение кнопок -------------------
+    // читаем каждый пин один раз через предвычисленные порты/маски
+    for (uint8_t i = 0; i < BUTTON_COUNT; ++i) {
+      bool state = !((*buttonPorts[i]) & buttonMasks[i]); // true = нажата
+
+      if (state != buttonPrevState[i]) {
+        // изменение состояния — проверяем дебаунс
+        if ((now - buttonLastDebounce[i]) >= BTN_DEB) {
+          buttonLastDebounce[i] = now;
+          buttonPrevState[i] = state;
+          // реагируем только на фронт нажатия (state == true)
+          if (state) {
+            // i == 0 => BUTTON_PIN_4 ("Режим отображенния") 
+            // i == 1 => BUTTON_PIN_5 ("- Периодов")
+            // i == 2 => BUTTON_PIN_6 ("+ Периодов")
+            // i == 3 => BUTTON_PIN_7 ("Рестарт счета")
+            if (i == 0) {
+              display_mode++;
+              if (display_mode > 3)display_mode = 0;
+            } else if (i == 1 && periods_on_screen > min_periods_on_screen) {
+              periods_on_screen--;
+            } else if (i == 2 && periods_on_screen < max_periods_on_screen) {
+              periods_on_screen++;
+            } else if (i == 3) {
+              // просто просходит рестарт счета
+              // noInterrupts();
+              resetCounters();
+              // interrupts();
+              attachInterrupt(digitalPinToInterrupt(FREQ_PIN_2), countPulse, CHANGE);
+
+            }
+            // Зарезервированные кнопки (i >= 4) — пока без действия
+          }
+        }
+
+      }
+    }
+
+
+  // }
 }
 

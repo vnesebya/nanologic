@@ -24,12 +24,15 @@ void debug64(float v1, float v2, float v3){
   oled.setCursorXY(64,40);
   oled.print("4:");
   oled.print (v1, 3);
+  oled.print ("     ");
   oled.setCursorXY(64,48);
   oled.print("5:");
   oled.print (v2, 3);
+  oled.print ("     ");
   oled.setCursorXY(64,56);
   oled.print("6:");
   oled.print (v3, 3);
+  oled.print ("     ");
 }
 
 #include <DisplaySplash.h>

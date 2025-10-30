@@ -17,7 +17,7 @@ void printFreq(long frequency_hz, int freq_y_pos ){
     oled.setCursorXY(0, freq_y_pos);
     oled.print("F:");
     oled.print("      ");
-    oled.setCursorXY(14,freq_y_pos);
+    oled.setCursorXY(12,freq_y_pos);
     if (frequency_hz < 1000.0f) {
       unsigned long hz10 = (unsigned long)round(frequency_hz * 10.00f /1);
       oled.print(hz10 / 10);
@@ -56,7 +56,7 @@ void printDuty (float hi_states_percent, float low_states_percent, int duty_y_po
     oled.setCursorXY(0, duty_y_pos);
     oled.print("D:");
     oled.print("      ");
-    oled.setCursorXY(14,duty_y_pos);
+    oled.setCursorXY(12,duty_y_pos);
     oled.print(hi_states_percent,0);
     oled.print("/");
     oled.print(low_states_percent,0);
@@ -88,15 +88,15 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
     if (len_front){
     // Иконка 1
       oled.drawByte(0b10000000); oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.drawByte(0b00000010); 
-      oled.drawByte(0b11111110); oled.drawByte(0b10000000); oled.drawByte(0b10000000); oled.print(":");
+      oled.drawByte(0b11111110); oled.drawByte(0b10000000); oled.print(":");
     } else {
     // Иконка 0
       oled.drawByte(0b00000010); oled.drawByte(0b11111110); oled.drawByte(0b10000000); oled.drawByte(0b10000000); 
-      oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.drawByte(0b00000010); oled.print(":");
+      oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.print(":");
     }
     
     oled.print("      ");
-    oled.setCursorXY(14, len_y_pos);
+    oled.setCursorXY(12, len_y_pos);
 
     // Значение длительности
     if (long_halfperiod < 1.0f) {
