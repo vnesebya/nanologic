@@ -71,17 +71,17 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
 
     // Калькулятор длительностей лог состояний
     // Считаем длительностей в пикосекундах
-    float long_one_period_psec = 0;
+    float long_one_period_ns = 0;
     if (frequency_hz > 0){
-        long_one_period_psec =  (1 / (float)(frequency_hz) * 1000000000000);
+        long_one_period_ns =  (1 / (float)(frequency_hz) * 1000000000);
     } else {
-        long_one_period_psec = 0;
-        long_one_period_psec =  (1 / (float)(frequency_hz) * 1000000000000);
+        long_one_period_ns = 0;
+        long_one_period_ns =  (1 / (float)(frequency_hz) * 1000000000);
     }
     
 
     float long_halfperiod = 0;
-    long_halfperiod =  long_one_period_psec / 100 * states_percent;
+    long_halfperiod =  long_one_period_ns / 100 * states_percent;
 
     // Иконнка Измерения длительности лог 1
     oled.setCursorXY(0, len_y_pos);
@@ -100,44 +100,36 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
 
     // Значение длительности
     if (long_halfperiod < 1.0f) {
-      oled.print("---ѓ");
+      oled.print("<1");
       oled.setCursorXY(units_x_pos, len_y_pos);
-      oled.print("S ");
+      oled.print("nS");
     } else if (long_halfperiod < 1000.0f) {
-      // Пикосекунды
-      unsigned long p10 = (unsigned long)round(long_halfperiod * 10.0f / 1.0f);
-      oled.print(p10 / 10);
-      oled.print('.');
-      oled.print(p10 % 10);
-      oled.setCursorXY(units_x_pos, len_y_pos);
-      oled.print("pS");
-    } else if (long_halfperiod < 1000000.0f) {
       // Наносекунды
-      unsigned long n10 = (unsigned long)round(long_halfperiod * 10.0f / 1000.0f);
+      unsigned long n10 = (unsigned long)round(long_halfperiod * 10.0f / 1.0f);
       oled.print(n10 / 10);
       oled.print('.');
       oled.print(n10 % 10);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("nS");
-    } else if (long_halfperiod < 1000000000.0f) {
+    } else if (long_halfperiod < 1000000.0f) {
       // Микросекунды
-      unsigned long u10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000.0f);
+      unsigned long u10 = (unsigned long)round(long_halfperiod * 10.0f / 1000.0f);
       oled.print(u10 / 10);
       oled.print('.');
       oled.print(u10 % 10);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("uS");
-    } else if (long_halfperiod < 1000000000000.0f) {
+    } else if (long_halfperiod < 1000000000.0f) {
       // Милисекунды
-      unsigned long m10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000000.0f);
+      unsigned long m10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000.0f);
       oled.print(m10 / 10);
       oled.print('.');
       oled.print(m10 % 10);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("mS");
-    } else if (long_halfperiod < 1000000000000000.0f) {
+    } else if (long_halfperiod < 1000000000000.0f) {
       // Секунды
-      unsigned long s10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000000000.0f);
+      unsigned long s10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000000.0f);
       oled.setCursorXY(vales_x_pos, len_y_pos);
       oled.print(s10 / 10);
       oled.print('.');
@@ -154,6 +146,9 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
 
 // Печать значений --------------------------------------------------------------------------------------------
 void printValues (long frequency_hz, long count_low_states, long count_hi_states){
+
+    oled.setScale(1);
+    oled.setCursorXY (0,0);
 
     printFreq(frequency_hz, freq_y_pos);
 
