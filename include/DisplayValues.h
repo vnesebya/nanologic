@@ -100,9 +100,9 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
 
     // Значение длительности
     if (long_halfperiod < 1.0f) {
-      oled.print("???");
+      oled.print("---ѓ");
       oled.setCursorXY(units_x_pos, len_y_pos);
-      oled.print("S");
+      oled.print("S ");
     } else if (long_halfperiod < 1000.0f) {
       // Пикосекунды
       unsigned long p10 = (unsigned long)round(long_halfperiod * 10.0f / 1.0f);

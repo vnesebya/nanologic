@@ -121,6 +121,5 @@ void loop() {
       Serial.println(periods_on_screen);
     }
 
-
 }
 
