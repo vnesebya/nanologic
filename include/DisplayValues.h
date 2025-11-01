@@ -22,60 +22,60 @@ void printFreq(long frequency_hz, int freq_y_pos ){
     // 0 HZ
     if (frequency_hz < 1.0f) {
       float hz = frequency_hz / 1.00f;
-      oled.print (" --- ");
+      oled.print ("< 1 ");
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("Hz");
-    // 0.1 - 9.99 HZ
+    // 0.999 - 9.99 HZ
     } else if (frequency_hz < 10.0f) {
       float hz = frequency_hz / 1.00f;
       oled.print (hz,3);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("Hz");
-    // 10 - 99.99 HZ
+    // 10.00 - 99.99 HZ
     } else if (frequency_hz < 100.0f) {
       float hz = frequency_hz / 1.00f;
       oled.print (hz,2);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("Hz");
-    // 100 - 999.9 HZ
+    // 100.0 - 999.9 HZ
     } else if (frequency_hz < 1000.0f) {
       float hz = frequency_hz / 1.00f;
       oled.print (hz,1);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("Hz");
 
-    // 1 - 9.999 KHz
+    // 1.000 - 9.999 KHz
     } else if (frequency_hz < 10000.0f) {
       float khz = frequency_hz / 1000.00f;
       oled.print (khz,3);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("K.");
-    // 10 - 99.99 KHz
+    // 10.00 - 99.99 KHz
     } else if (frequency_hz < 100000.0f) {
       float khz = frequency_hz / 1000.00f;
       oled.print (khz,2);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("K.");
-    // 100 - 999.9 KHz
+    // 100.1 - 999.9 KHz
     } else if (frequency_hz < 1000000.0f) {
       float khz = frequency_hz / 1000.00f;
       oled.print (khz,1);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("K.");
 
-    // 1 - 9.999 MHz
+    // 1.000 - 9.999 MHz
     } else if (frequency_hz < 10000000.0f) {
       float mhz = frequency_hz / 1000000.0f;
       oled.print (mhz,3);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("M.");
-    // 10 - 99.99 MHz
+    // 10.00 - 99.99 MHz
     } else if (frequency_hz < 100000000.0f) {
       float mhz = frequency_hz / 1000000.0f;
       oled.print (mhz,2);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("M.");
-    // 100 - 999.99 MHz
+    // 100.1 - 999.9 MHz
     } else if (frequency_hz < 1000000000.0f) {
       float mhz = frequency_hz / 1000000.0f;
       oled.print (mhz,1);
@@ -85,7 +85,7 @@ void printFreq(long frequency_hz, int freq_y_pos ){
     // > 1 GHz 
     } else {
       float ghz = frequency_hz / 1000000000.0f;
-      oled.print (ghz,2);
+      oled.print ("> 1");
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("G.");
     }
@@ -141,36 +141,32 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
     oled.setCursorXY(12, len_y_pos);
 
     // Значение длительности
+    // < 1 nS
     if (long_halfperiod < 1.0f) {
-      oled.print("<1");
+      oled.print("< 1");
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("nS");
+    // 1.00 - 999.99 nS
     } else if (long_halfperiod < 1000.0f) {
-      // Наносекунды
       float nsec = long_halfperiod / 1.0f;
       oled.print(nsec, 2);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("nS");
+    // 1.0 - 999.99 uS
     } else if (long_halfperiod < 1000000.0f) {
-      // Микросекунды
       float usec = long_halfperiod / 1000.0f;
       oled.print(usec, 2);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("uS");
+    // 1.0 - 999.99 mS
     } else if (long_halfperiod < 1000000000.0f) {
-      // Милисекунды
       float msec = long_halfperiod / 1000000.0f;
       oled.print(msec, 2);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("mS");
-    } else if (long_halfperiod < 1000000000000.0f) {
-      // Секунды
-      float sec = long_halfperiod / 1000000000.0f;
-      oled.print(sec, 2);
-      oled.setCursorXY(units_x_pos, len_y_pos);
-      oled.print("S ");
+    // > 1.0 S
     } else {
-      oled.print (" --- ");
+      oled.print ("> 1");
       oled.setCursorXY(units_x_pos + 1, len_y_pos);
       oled.print("S ");
     }
