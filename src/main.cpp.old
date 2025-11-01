@@ -1,0 +1,44 @@
+/*  Частотомер от 1Гц до 8Мгц
+ *  принцип на основе подсчета периодов за секунду.
+ *  использована библиотека Пауля FreqCount 
+ *  http://www.pjrc.com/teensy/td_libs_FreqCount.html
+ *  и просто к библиотеке прикручен LCD дисплей 16х2 
+* Подключение дисплея стандартное
+* LCD RS pin to digital pin 12    
+* LCD Enable pin to digital pin 11
+* LCD D4 pin to digital pin 7     
+* LCD D5 pin to digital pin 6     
+* LCD D6 pin to digital pin 4     
+* LCD D7 pin to digital pin 2     
+* LCD R/W pin to ground           
+* 10K resistor:                   
+* ends to +5V and ground          
+* wiper to LCD VO pin (pin 3)     
+* Вход частоты размахом 5вольт на ногу D5 (менять этот пин на другой, запрещено)
+* ТехнарьКто 2016 год
+* для плат Arduino Uno, Arduino Nano (Atmel 328p, 16Mhz, 5V)
+*/
+
+#include <FreqCount.h>
+#include <Display.h>
+
+
+void setup() {
+    oled.init();
+    oled.clear();
+    oled.setCursor(0,0);
+    oled.print("1Hz-8MHz Freq:");
+    FreqCount.begin(1000);
+}
+
+void loop() {
+  if (FreqCount.available()) {
+    float count = (float)FreqCount.read() / 1000 / 1000;
+    oled.setCursor(0, 1);
+    oled.print(count, 3);
+    oled.print(" MHz");
+    oled.print("       ");
+  }
+}
+
+

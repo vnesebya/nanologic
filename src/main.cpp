@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include <Button.h>
 #include <Display.h>
+#include <FreqCount.h>
+
 
 // Назначение кнопок на ппины
 Button btn1(4);
-Button btn2(5);
-Button btn3(6);
-Button btn4(7);
+Button btn2(6);
+Button btn3(7);
+Button btn4(8);
 
 // Назначение пина частотомера
 const uint8_t FREQ_PIN_2        = 2;         // Вход частотомера (прерывания по CHANGE)
@@ -68,31 +70,23 @@ void setup() {
     // Инициализируем и очищаем экран
     oled.init();
     oled.clear();
-    // splashScreen();
+    splashScreen();
     oled.clear();
+    FreqCount.begin(250);
 }
 
 void loop() {
     // Считаем импульсы в прерывании ----------------------------------------------
-    resetCounters();
-    attachInterrupt(digitalPinToInterrupt(FREQ_PIN_2), countPulse, CHANGE);
-    delay (count_timer_ms);
-    detachInterrupt(digitalPinToInterrupt(FREQ_PIN_2));
+    if (FreqCount.available()) {
+    frequency_hz = (float)FreqCount.read() * 4 ;
+    }
+    count_low_states = 1;
+    count_hi_states  = 1;
 
-    noInterrupts();
-    // Счтаем частоту , т.к натикало в 2 раза больше по обоим фронтам (CHANGE) 
-    frequency_hz = (float)pulse_count * 1000.0 / count_timer_ms / 2;
-    interrupts();
-
-
-    // // Измерение напряжения на входе
-    // int analogValue = analogRead(A0);
-    // float voltage = analogValue * (5.0 / 1023.0);
-
-      // Печатаем данные замеров на экране ------------------------------------------
-      printValues(frequency_hz, count_low_states, count_hi_states);
-      // Рисуем график осцилограммы
-      drawGraph(frequency_hz, count_low_states, count_hi_states, periods_on_screen );
+    // Печатаем результаты
+    printValues(frequency_hz, count_low_states, count_hi_states);
+    // Рисуем график осцилограммы
+    drawGraph(frequency_hz, count_low_states, count_hi_states, periods_on_screen );
 
 
     // Читаем кнопки --------------------------------------------------------------
@@ -121,4 +115,3 @@ void loop() {
       Serial.println(periods_on_screen);
     }
 }
-
