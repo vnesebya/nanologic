@@ -1,5 +1,5 @@
-#ifndef DispalySplash
-
+#ifndef DispalySplash_h
+#define DisplaySplash_h
 
 
 // Заствка ----------------------------------------------------------------------------------------------------

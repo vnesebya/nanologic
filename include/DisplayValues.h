@@ -1,4 +1,5 @@
-#ifndef DisplayValues
+#ifndef DisplayValues_h
+#define DisplayValues
 
 
 // Позиции печати на экрне для printValues
@@ -15,35 +16,76 @@ void printFreq(long frequency_hz, int freq_y_pos ){
 
     // Калькулятор пересчета единиц частоты
     oled.setCursorXY(0, freq_y_pos);
-    oled.print("F:");
+    oled.print("F: ");
     oled.print("      ");
     oled.setCursorXY(12,freq_y_pos);
-    if (frequency_hz < 1000.0f) {
-      unsigned long hz10 = (unsigned long)round(frequency_hz * 10.00f /1);
-      oled.print(hz10 / 10);
-      oled.print('.');
-      oled.print(hz10 % 100);
+    // 0 HZ
+    if (frequency_hz < 1.0f) {
+      float hz = frequency_hz / 1.00f;
+      oled.print (" --- ");
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("Hz");
-    } else if (frequency_hz < 1000000.0f) {
-      unsigned long khz10 = (unsigned long)round(frequency_hz * 10.00f / 1000.0f);
-      oled.print(khz10 / 10);
-      oled.print('.');
-      oled.print(khz10 % 100);
+    // 0.1 - 9.99 HZ
+    } else if (frequency_hz < 10.0f) {
+      float hz = frequency_hz / 1.00f;
+      oled.print (hz,3);
+      oled.setCursorXY(units_x_pos, freq_y_pos);
+      oled.print("Hz");
+    // 10 - 99.99 HZ
+    } else if (frequency_hz < 100.0f) {
+      float hz = frequency_hz / 1.00f;
+      oled.print (hz,2);
+      oled.setCursorXY(units_x_pos, freq_y_pos);
+      oled.print("Hz");
+    // 100 - 999.9 HZ
+    } else if (frequency_hz < 1000.0f) {
+      float hz = frequency_hz / 1.00f;
+      oled.print (hz,1);
+      oled.setCursorXY(units_x_pos, freq_y_pos);
+      oled.print("Hz");
+
+    // 1 - 9.999 KHz
+    } else if (frequency_hz < 10000.0f) {
+      float khz = frequency_hz / 1000.00f;
+      oled.print (khz,3);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("K.");
-    } else if (frequency_hz < 1000000000.0f) {
-      unsigned long mhz10 = (unsigned long)round(frequency_hz * 10.00f / 1000000.0f);
-      oled.print(mhz10 / 10);
-      oled.print('.');
-      oled.print(mhz10 % 100);
+    // 10 - 99.99 KHz
+    } else if (frequency_hz < 100000.0f) {
+      float khz = frequency_hz / 1000.00f;
+      oled.print (khz,2);
+      oled.setCursorXY(units_x_pos, freq_y_pos);
+      oled.print("K.");
+    // 100 - 999.9 KHz
+    } else if (frequency_hz < 1000000.0f) {
+      float khz = frequency_hz / 1000.00f;
+      oled.print (khz,1);
+      oled.setCursorXY(units_x_pos, freq_y_pos);
+      oled.print("K.");
+
+    // 1 - 9.999 MHz
+    } else if (frequency_hz < 10000000.0f) {
+      float mhz = frequency_hz / 1000000.0f;
+      oled.print (mhz,3);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("M.");
+    // 10 - 99.99 MHz
+    } else if (frequency_hz < 100000000.0f) {
+      float mhz = frequency_hz / 1000000.0f;
+      oled.print (mhz,2);
+      oled.setCursorXY(units_x_pos, freq_y_pos);
+      oled.print("M.");
+    // 100 - 999.99 MHz
+    } else if (frequency_hz < 1000000000.0f) {
+      float mhz = frequency_hz / 1000000.0f;
+      oled.print (mhz,1);
+      oled.setCursorXY(units_x_pos, freq_y_pos);
+      oled.print("M.");
+
+    // > 1 GHz 
     } else {
-      unsigned long ghz10 = (unsigned long)round(frequency_hz * 10.00f / 1000000000.0f);
-      oled.print(ghz10 / 10);
-      oled.print('.');
-      oled.print(ghz10 % 100);
+      float ghz = frequency_hz / 1000000000.0f;
+      oled.print (ghz,2);
       oled.setCursorXY(units_x_pos, freq_y_pos);
       oled.print("G.");
     }
@@ -54,7 +96,7 @@ void printDuty (float hi_states_percent, float low_states_percent, int duty_y_po
 
     // Печатаем скважность
     oled.setCursorXY(0, duty_y_pos);
-    oled.print("D:");
+    oled.print("D: ");
     oled.print("      ");
     oled.setCursorXY(12,duty_y_pos);
     oled.print(hi_states_percent,0);
@@ -88,11 +130,11 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
     if (len_front){
     // Иконка 1
       oled.drawByte(0b10000000); oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.drawByte(0b00000010); 
-      oled.drawByte(0b11111110); oled.drawByte(0b10000000); oled.print(":");
+      oled.drawByte(0b11111110); oled.drawByte(0b10000000); oled.print(": ");
     } else {
     // Иконка 0
       oled.drawByte(0b00000010); oled.drawByte(0b11111110); oled.drawByte(0b10000000); oled.drawByte(0b10000000); 
-      oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.print(":");
+      oled.drawByte(0b11111110); oled.drawByte(0b00000010); oled.print(": ");
     }
     
     oled.print("      ");
@@ -105,40 +147,31 @@ void printLen (long frequency_hz, int states_percent, bool len_front, int len_y_
       oled.print("nS");
     } else if (long_halfperiod < 1000.0f) {
       // Наносекунды
-      unsigned long n10 = (unsigned long)round(long_halfperiod * 10.0f / 1.0f);
-      oled.print(n10 / 10);
-      oled.print('.');
-      oled.print(n10 % 10);
+      float nsec = long_halfperiod / 1.0f;
+      oled.print(nsec, 2);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("nS");
     } else if (long_halfperiod < 1000000.0f) {
       // Микросекунды
-      unsigned long u10 = (unsigned long)round(long_halfperiod * 10.0f / 1000.0f);
-      oled.print(u10 / 10);
-      oled.print('.');
-      oled.print(u10 % 10);
+      float usec = long_halfperiod / 1000.0f;
+      oled.print(usec, 2);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("uS");
     } else if (long_halfperiod < 1000000000.0f) {
       // Милисекунды
-      unsigned long m10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000.0f);
-      oled.print(m10 / 10);
-      oled.print('.');
-      oled.print(m10 % 10);
+      float msec = long_halfperiod / 1000000.0f;
+      oled.print(msec, 2);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("mS");
     } else if (long_halfperiod < 1000000000000.0f) {
       // Секунды
-      unsigned long s10 = (unsigned long)round(long_halfperiod * 10.0f / 1000000000.0f);
-      oled.setCursorXY(vales_x_pos, len_y_pos);
-      oled.print(s10 / 10);
-      oled.print('.');
-      oled.print(s10 % 10);
+      float sec = long_halfperiod / 1000000000.0f;
+      oled.print(sec, 2);
       oled.setCursorXY(units_x_pos, len_y_pos);
       oled.print("S ");
     } else {
-      oled.print ("0");
-      oled.setCursorXY(units_x_pos, len_y_pos);
+      oled.print (" --- ");
+      oled.setCursorXY(units_x_pos + 1, len_y_pos);
       oled.print("S ");
     }
 }

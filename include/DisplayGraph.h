@@ -1,4 +1,6 @@
-#ifndef DispalyGraf
+#ifndef DispalyGraf_h
+#define DispalyGraf_h
+
 
 // Позиции печати на экрне для drawGarph
 int diagramm_len = 64;                         // Длинна диаграммы
